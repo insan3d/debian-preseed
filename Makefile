@@ -13,7 +13,7 @@
 
 
 
-DEBIAN_VERSION ?= 12.4.0
+DEBIAN_VERSION ?= 12.5.0
 IMAGE_NAME ?= preseed
 PRESEED ?= preseed.cfg
 
