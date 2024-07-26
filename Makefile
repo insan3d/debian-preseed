@@ -13,13 +13,16 @@
 
 
 
-DEBIAN_VERSION ?= 12.5.0
+DEBIAN_VERSION ?= 12.6.0
 IMAGE_NAME ?= preseed
 PRESEED ?= preseed.cfg
 
 .PHONY: clean check-reqs
 .DELETE_ON_ERROR: SHA512SUMS SHA512SUMS.sign debian-$(DEBIAN_VERSION)-amd64-netinst.iso isofiles isohdpfx.bin
 .INTERMEDIATE: isohdpfx.bin
+
+debian-$(DEBIAN_VERSION)-amd64-netinst_$(IMAGE_NAME).iso.sha512: debian-$(DEBIAN_VERSION)-amd64-netinst_$(IMAGE_NAME).iso
+	sha512sum debian-12.6.0-amd64-netinst_preseed.iso >debian-$(DEBIAN_VERSION)-amd64-netinst_$(IMAGE_NAME).iso.sha512
 
 debian-$(DEBIAN_VERSION)-amd64-netinst_$(IMAGE_NAME).iso: isofiles/install.amd/initrd.gz isohdpfx.bin
 	@chmod -v +w isofiles/isolinux isofiles/isolinux/isolinux.cfg isofiles/boot/grub isofiles/boot/grub/grub.cfg isofiles/md5sum.txt isofiles/.disk/mkisofs
@@ -99,3 +102,4 @@ in-docker:
 	docker cp tmp-debian-netinst:/debian/debian-$(DEBIAN_VERSION)-amd64-netinst_$(IMAGE_NAME).iso .
 	docker container rm tmp-debian-netinst
 	docker image rm debian-netinst:$(DEBIAN_VERSION)-$(IMAGE_NAME)
+	sha512sum debian-12.6.0-amd64-netinst_preseed.iso >debian-$(DEBIAN_VERSION)-amd64-netinst_$(IMAGE_NAME).iso.sha512

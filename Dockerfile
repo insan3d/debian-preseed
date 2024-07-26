@@ -1,10 +1,15 @@
-ARG DEBIAN_VERSION="12.4.0"
+# hadolint global ignore=DL3059
+# hadolint global ignore=DL3018
+
+ARG DEBIAN_VERSION="12.6.0"
+ARG BASE_IMAGE_NAME="alpine"
+ARG BASE_IMAGE_TAG="3.20.2"
 ARG IMAGE_NAME="preseed"
 ARG PRESEED="preseed.cfg"
 
 
 
-FROM alpine:latest as xorriso-builder
+FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG} as xorriso-builder
 
 WORKDIR /usr/local/src/xorriso
 
@@ -18,11 +23,11 @@ RUN ./configure CFLAGS="$CFLAGS -DLibburn_udev_wait_useC=0" \
  && make check \
  \
  && mkdir stage \
- && make install DESTDIR=$(realpath stage)
+ && make install DESTDIR="$(realpath stage)"
 
 
 
-FROM alpine:latest as debian-netinst-preseed
+FROM ${BASE_IMAGE_NAME}:${BASE_IMAGE_TAG} as debian-netinst-preseed
 
 ARG DEBIAN_VERSION
 ARG IMAGE_NAME
@@ -30,12 +35,17 @@ ARG PRESEED
 
 ENV PATH=/usr/local/bin:${PATH}
 
+# /bin/ash will fail, hadolint will complainthis is POSIX sh, but this is BusyBox one
+# hadolint ignore=DL4006
+SHELL ["/bin/sh", "-o", "pipefail", "-c"]
+
 WORKDIR /debian
 
 RUN apk --no-cache add cpio gnupg gzip sed wget
 
 RUN gpg --keyserver hkps://keyserver.ubuntu.com --recv-keys 988021A964E6EA7D DA87E80D6294BE9B 42468F4009EA8AC3
 
+# hadolint ignore=DL4006
 RUN wget --no-verbose --show-progress --progress=bar:force:noscroll \
         "https://cdimage.debian.org/debian-cd/${DEBIAN_VERSION}/amd64/iso-cd/debian-${DEBIAN_VERSION}-amd64-netinst.iso" \
         -O "debian-${DEBIAN_VERSION}-amd64-netinst.iso" \
@@ -62,6 +72,7 @@ RUN mkdir -v isofiles \
 
 COPY "${PRESEED}" .
 
+# hadolint ignore=DL3003,SC2094,DL4006
 RUN echo "${PRESEED}" | cpio -H newc -o -A -F isofiles/install.amd/initrd \
  && gzip -v isofiles/install.amd/initrd \
  && chmod -v -w isofiles/install.amd isofiles/install.amd/initrd.gz \

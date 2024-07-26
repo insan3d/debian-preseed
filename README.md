@@ -2,7 +2,7 @@
 
 Yet another Debian preseed configuration template.
 
-```
+```plain
 # Usage:
 # 
 #  make            build image on local machine (requires GNU wget, cpio, dd, gpg, gzip, sed, md5sum and xorriso)
